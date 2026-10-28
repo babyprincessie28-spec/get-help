@@ -1,0 +1,6 @@
+{
+  "appId": "com.example.emergencyhelp",
+  "appName": "Emergency Help",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}

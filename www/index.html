@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Emergency Help Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f4;--card:#fff;--ink:#14202b;--mute:#566574;--line:#cfd8e0;--red:#d62828;--redink:#fff;--blue:#1d4e89;--amber:#ffc233;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1720;--card:#18232f;--ink:#f1f5f8;--mute:#9db0c0;--line:#2c3b4a;--red:#ff5a54;--redink:#1a0505;--blue:#7fb2f0;--amber:#ffc233}}
+:root[data-theme="dark"]{--bg:#0f1720;--card:#18232f;--ink:#f1f5f8;--mute:#9db0c0;--line:#2c3b4a;--red:#ff5a54;--redink:#1a0505;--blue:#7fb2f0;--amber:#ffc233}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.45 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:720px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:1.6rem;line-height:1.15;margin:4px 0 4px}
+h2{font-size:1.15rem;margin:28px 0 10px}
+p{margin:0}
+.sub{color:var(--mute)}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.sos{background:var(--red);color:var(--redink);border-radius:16px;padding:16px;margin-top:16px}
+.sos label{display:block;font-size:.9rem;margin-bottom:6px}
+select,input{font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.sos select{border-color:transparent}
+.big{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;background:var(--redink);color:var(--red);font-weight:700;font-size:1.7rem;text-decoration:none;border-radius:12px;padding:16px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.row a{display:block;text-align:center;text-decoration:none;font-weight:700;border:2px solid var(--redink);border-radius:12px;padding:10px 6px;color:var(--redink)}
+.row small{display:block;font-weight:400;opacity:.85}
+.loc{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:16px}
+button{font:inherit;font-weight:700;cursor:pointer;border:0;border-radius:10px;padding:10px 14px;background:var(--blue);color:var(--card)}
+button.alt{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tile{display:flex;flex-direction:column;gap:6px;text-decoration:none;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px;min-height:92px}
+.tile:hover{border-color:var(--blue)}
+.tile span{font-size:1.7rem;line-height:1}
+.tile b{font-size:1rem}
+.tile.hot{border-color:var(--red)}
+ul.steps{margin:0;padding-left:1.2rem}
+ul.steps li{margin:6px 0}
+details{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:8px}
+summary{font-weight:700;cursor:pointer}
+.note{font-size:.9rem;color:var(--mute);margin-top:28px}
+.msg{font-size:.9rem;margin-top:6px;color:var(--mute);min-height:1.2em}
+.nums{display:grid;gap:8px}
+.num{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
+.num small{display:block;color:var(--mute)}
+.num a.call{font-weight:700;text-decoration:none;color:var(--card);background:var(--blue);border-radius:10px;padding:10px 16px;white-space:nowrap}
+.num button{padding:8px 10px}
+h3{font-size:1rem;margin:16px 0 8px}
+.add{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:10px}
+@media (max-width:520px){.add{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Emergency help finder</h1>
+  <p class="sub">Call first if someone is in danger. Then find help nearby.</p>
+
+  <section class="sos" aria-label="Emergency numbers">
+    <label for="country">Your country</label>
+    <select id="country"></select>
+    <a class="big" id="main-call" href="tel:112">Call 112</a>
+    <div class="row" id="numbers"></div>
+  </section>
+
+  <div class="loc">
+    <div>
+      <b id="loc-title">Location is off</b>
+      <p class="sub" id="loc-sub">Turn it on so searches start from where you are.</p>
+    </div>
+    <button id="loc-btn" type="button">Use my location</button>
+  </div>
+
+  <h2>More numbers to call</h2>
+  <div id="more"></div>
+
+  <h2>My own numbers</h2>
+  <p class="sub">Save numbers that matter to you, like your medical aid, insurer, roadside cover or a tow company you trust. They stay on this device.</p>
+  <div class="add">
+    <input id="c-name" type="text" placeholder="Name, e.g. My roadside cover" aria-label="Name">
+    <input id="c-num" type="tel" inputmode="tel" placeholder="Phone number" aria-label="Phone number">
+    <button id="add-btn" type="button">Add number</button>
+  </div>
+  <p class="msg" id="add-msg" role="status"></p>
+  <div class="nums" id="mine"></div>
+
+  <h2>Medical and safety</h2>
+  <div class="grid" id="g-med"></div>
+
+  <h2>Car trouble</h2>
+  <div class="grid" id="g-car"></div>
+
+  <h2>Home and other</h2>
+  <div class="grid" id="g-other"></div>
+
+  <h2>Tell someone where you are</h2>
+  <p class="sub">Sends a map link of your current position.</p>
+  <div style="margin-top:10px">
+    <label for="contact" class="sub" style="font-size:.9rem">Emergency contact phone (saved on this device)</label>
+    <input id="contact" type="tel" inputmode="tel" placeholder="e.g. +27 82 123 4567" autocomplete="tel">
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      <button id="share" type="button">Send my location</button>
+      <button id="copy" type="button" class="alt">Copy location link</button>
+    </div>
+    <p class="msg" id="share-msg" role="status"></p>
+  </div>
+
+  <h2>While you wait</h2>
+  <details><summary>Broken down on the road</summary>
+    <ul class="steps"><li>Turn on hazard lights and pull as far off the road as you safely can.</li><li>Everyone out of the car on the side away from traffic, if it is safe to leave it.</li><li>Stay visible and away from the vehicle on busy highways.</li><li>Share your location, then call a tow truck or roadside cover.</li></ul></details>
+  <details><summary>Accident with injuries</summary>
+    <ul class="steps"><li>Call the ambulance number first and say exactly where you are.</li><li>Do not move an injured person unless there is fire or immediate danger.</li><li>Press firmly on heavy bleeding with a clean cloth.</li><li>Stay on the line until the operator tells you to hang up.</li></ul></details>
+  <details><summary>Car fire or smoke</summary>
+    <ul class="steps"><li>Stop, switch off the engine and get everyone out.</li><li>Move well away from the car and call the fire number.</li><li>Do not open the bonnet; fresh air feeds the fire.</li></ul></details>
+  <details><summary>Feeling unsafe or followed</summary>
+    <ul class="steps"><li>Drive or walk to a busy, well-lit place such as a petrol station or police station.</li><li>Keep doors locked and call the police number.</li><li>Share your live location with someone you trust.</li></ul></details>
+
+  <p class="note">This page opens Google Maps searches and phone calls. It cannot guarantee a business is open, nearby or reputable, so check before you pay. Emergency numbers are listed for convenience; confirm the correct ones for where you are.</p>
+</main>
+
+<script>
+(function(){
+  var C={
+    ZA:{n:"South Africa",main:"112",list:[["Ambulance","10177"],["Police","10111"],["Fire","10177"],["Mobile emergency","112"]]},
+    US:{n:"United States",main:"911",list:[["Ambulance","911"],["Police","911"],["Fire","911"],["Poison control","1-800-222-1222"]]},
+    CA:{n:"Canada",main:"911",list:[["Ambulance","911"],["Police","911"],["Fire","911"],["Poison control","1-844-764-7669"]]},
+    GB:{n:"United Kingdom",main:"999",list:[["Ambulance","999"],["Police","999"],["Fire","999"],["Non-emergency health","111"]]},
+    EU:{n:"European Union",main:"112",list:[["Ambulance","112"],["Police","112"],["Fire","112"],["Any emergency","112"]]},
+    AU:{n:"Australia",main:"000",list:[["Ambulance","000"],["Police","000"],["Fire","000"],["Mobile emergency","112"]]},
+    NZ:{n:"New Zealand",main:"111",list:[["Ambulance","111"],["Police","111"],["Fire","111"],["Non-emergency health","1737"]]},
+    IN:{n:"India",main:"112",list:[["Ambulance","102"],["Police","100"],["Fire","101"],["Any emergency","112"]]},
+    NG:{n:"Nigeria",main:"112",list:[["Any emergency","112"],["Police","199"],["Ambulance","112"],["Fire","112"]]},
+    KE:{n:"Kenya",main:"999",list:[["Any emergency","999"],["Mobile emergency","112"],["Ambulance","999"],["Police","999"]]}
+  };
+  var CATS={
+    med:[["🏥","Hospitals","hospital emergency",1],["💊","Late-night pharmacy","24 hour pharmacy"],["🚑","Ambulance services","ambulance service"],["🚓","Police stations","police station"],["🚒","Fire stations","fire station"]],
+    car:[["🛻","Tow trucks","tow truck",1],["🔧","Mechanics","auto repair shop",1],["🛞","Tyre repair","tire repair shop"],["⛽","Fuel stations","gas station"],["🔋","Battery and jump start","car battery replacement"]],
+    other:[["🔑","Locksmiths","emergency locksmith"],["🚰","Plumbers","emergency plumber"],["💡","Electricians","emergency electrician"],["🐾","Emergency vets","emergency vet"],["🧠","Mental health help","mental health crisis center"]]
+  };
+  var pos=null;
+  var $=function(i){return document.getElementById(i)};
+  var sel=$("country");
+  Object.keys(C).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=C[k].n;sel.appendChild(o)});
+
+  function guess(){
+    try{var r=((navigator.language||"").split("-")[1]||"").toUpperCase();if(C[r])return r}catch(e){}
+    return "ZA";
+  }
+  var saved=null;
+  try{saved=localStorage.getItem("eh-country")}catch(e){}
+  sel.value=C[saved]?saved:guess();
+
+  function renderNumbers(){
+    var c=C[sel.value];
+    var m=$("main-call");m.href="tel:"+c.main.replace(/[^0-9+]/g,"");m.textContent="Call "+c.main;
+    var h="";
+    c.list.forEach(function(x){h+='<a href="tel:'+x[1].replace(/[^0-9+]/g,"")+'">'+x[0]+'<small>'+x[1]+'</small></a>'});
+    $("numbers").innerHTML=h;
+    try{localStorage.setItem("eh-country",sel.value)}catch(e){}
+  }
+  sel.addEventListener("change",renderNumbers);
+
+  function mapsUrl(q){
+    var near=pos?" near "+pos.lat.toFixed(5)+","+pos.lng.toFixed(5):" near me";
+    return "https://www.google.com/maps/search/"+encodeURIComponent(q+near);
+  }
+  function renderTiles(){
+    [["g-med","med"],["g-car","car"],["g-other","other"]].forEach(function(p){
+      var h="";
+      CATS[p[1]].forEach(function(c){
+        h+='<a class="tile'+(c[3]?' hot':'')+'" target="_blank" rel="noopener" href="'+mapsUrl(c[2])+'"><span aria-hidden="true">'+c[0]+'</span><b>'+c[1]+'</b></a>';
+      });
+      $(p[0]).innerHTML=h;
+    });
+  }
+
+  function setLoc(){
+    $("loc-title").textContent="Location is on";
+    $("loc-sub").textContent="Searches now start from your position.";
+    $("loc-btn").textContent="Refresh";
+    renderTiles();
+  }
+  function getLoc(cb){
+    if(!navigator.geolocation){$("loc-sub").textContent="This browser can’t share location. Searches will use “near me”.";return}
+    $("loc-sub").textContent="Finding you…";
+    navigator.geolocation.getCurrentPosition(function(p){
+      pos={lat:p.coords.latitude,lng:p.coords.longitude};setLoc();if(cb)cb();
+    },function(){
+      $("loc-title").textContent="Location is off";
+      $("loc-sub").textContent="Permission was blocked. Allow location for this page, or use the searches as they are.";
+    },{enableHighAccuracy:true,timeout:15000,maximumAge:30000});
+  }
+  $("loc-btn").addEventListener("click",function(){getLoc()});
+
+  function link(){return pos?"https://www.google.com/maps?q="+pos.lat.toFixed(6)+","+pos.lng.toFixed(6):null}
+  function needLoc(fn){
+    if(pos){fn();return}
+    $("share-msg").textContent="Getting your location first…";
+    getLoc(fn);
+  }
+  var ct=$("contact");
+  try{ct.value=localStorage.getItem("eh-contact")||""}catch(e){}
+  ct.addEventListener("change",function(){try{localStorage.setItem("eh-contact",ct.value)}catch(e){}});
+
+  $("share").addEventListener("click",function(){
+    needLoc(function(){
+      var text="I need help. My location: "+link();
+      var num=ct.value.replace(/[^0-9+]/g,"");
+      if(navigator.share){navigator.share({text:text}).catch(function(){});$("share-msg").textContent="";return}
+      window.open("sms:"+num+"?&body="+encodeURIComponent(text),"_blank");
+      $("share-msg").textContent="Opening your messages app.";
+    });
+  });
+  $("copy").addEventListener("click",function(){
+    needLoc(function(){
+      var l=link();
+      try{navigator.clipboard.writeText(l).then(function(){$("share-msg").textContent="Link copied."},function(){$("share-msg").textContent=l})}
+      catch(e){$("share-msg").textContent=l}
+    });
+  });
+
+  var X={
+    ZA:{pub:[["Government ambulance (EMS)","10177"],["Police emergency","10111"],["Gender-based violence command centre","0800 428 428"],["Poison information helpline","0861 555 777"]],
+        prv:[["ER24 ambulance","084 124"],["Netcare 911 ambulance","082 911"]],
+        np:[["Lifeline counselling","0861 322 322"],["SADAG suicide crisis line","0800 567 567"],["Childline","0800 055 555"]]},
+    US:{pub:[["Suicide and crisis lifeline","988"],["Poison control","1-800-222-1222"]],prv:[]},
+    GB:{pub:[["NHS non-emergency","111"]],prv:[],np:[["Samaritans","116 123"]]}
+  };
+  function digits(n){return n.replace(/[^0-9+]/g,"")}
+  function row(name,num,onRemove){
+    var d=document.createElement("div");d.className="num";
+    var t=document.createElement("div");
+    var b=document.createElement("b");b.textContent=name;
+    var s=document.createElement("small");s.textContent=num;
+    t.appendChild(b);t.appendChild(s);
+    var r=document.createElement("div");r.style.cssText="display:flex;gap:8px;align-items:center";
+    var a=document.createElement("a");a.className="call";a.href="tel:"+digits(num);a.textContent="Call";a.setAttribute("aria-label","Call "+name);
+    r.appendChild(a);
+    if(onRemove){var x=document.createElement("button");x.type="button";x.className="alt";x.textContent="Remove";x.setAttribute("aria-label","Remove "+name);x.addEventListener("click",onRemove);r.appendChild(x)}
+    d.appendChild(t);d.appendChild(r);return d;
+  }
+  function note(box,text){var p=document.createElement("p");p.className="sub";p.textContent=text;box.appendChild(p)}
+  function renderMore(){
+    var box=$("more");box.innerHTML="";
+    var e=X[sel.value];
+    if(!e){note(box,"No extra numbers are listed for this country yet. Add your own below.");return}
+    [["Government and public",e.pub||[]],["Private companies",e.prv||[]],["Non-profit organisations",e.np||[]]].forEach(function(g){
+      if(!g[1].length)return;
+      var h=document.createElement("h3");h.textContent=g[0];box.appendChild(h);
+      var l=document.createElement("div");l.className="nums";
+      g[1].forEach(function(x){l.appendChild(row(x[0],x[1]))});
+      box.appendChild(l);
+    });
+  }
+  var mine=[];
+  try{mine=JSON.parse(localStorage.getItem("eh-custom")||"[]");if(!Array.isArray(mine))mine=[]}catch(e){mine=[]}
+  function saveMine(){try{localStorage.setItem("eh-custom",JSON.stringify(mine))}catch(e){}}
+  function renderMine(){
+    var box=$("mine");box.innerHTML="";
+    if(!mine.length){note(box,"Nothing saved yet. Add your insurer, roadside cover, tow company or a local clinic.");return}
+    mine.forEach(function(m,i){box.appendChild(row(m.n,m.p,function(){mine.splice(i,1);saveMine();renderMine()}))});
+  }
+  $("add-btn").addEventListener("click",function(){
+    var n=$("c-name").value.trim(),p=$("c-num").value.trim();
+    if(!n||digits(p).length<3){$("add-msg").textContent="Enter a name and a phone number.";return}
+    mine.push({n:n,p:p});saveMine();renderMine();
+    $("c-name").value="";$("c-num").value="";$("add-msg").textContent="Saved on this device.";
+  });
+  sel.addEventListener("change",renderMore);
+
+  renderNumbers();renderTiles();renderMore();renderMine();
+})();
+</script>
+</body>
+</html>
